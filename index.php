@@ -4,10 +4,17 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
  
 <body>
+
 <?php
+    require 'vendor/autoload.php';
+	use App\SQLiteConnection;
+	 
+	$pdo = (new SQLiteConnection())->connect();
+	if ($pdo != null)
+		echo 'Connected to the SQLite database successfully!';
+	else
+		echo 'Whoops, could not connect to the SQLite database!';
     
-    $dbhandle = new PDO("sqlite:scrabble.sqlite") or die("Failed to open DB");
-    if (!$dbhandle) die ($error);
  
     $query = "SELECT rack, words FROM racks WHERE length=7 and weight <= 10 order by random() limit 0, 1";
 

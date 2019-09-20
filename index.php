@@ -1,78 +1,106 @@
-<!-- Works as game but how to incorporate required milestones? ask novo-->
+<!--lOOK AT THIS COOL GAME I MADE THANKS FOR CHECKING OUT MY CODE-->
 <!DOCTYPE html>
 <html>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
  
 <body>
-
-<?php
-	$dbhandle = new PDO("sqlite:scrabble.sqlite") or die("Failed to open DB");
-    if (!$dbhandle) die ($error);
-	
-    $query = "SELECT rack, words FROM racks WHERE length=7 and weight <= 10 order by random() limit 0, 1";
-
-    $statement = $dbhandle->prepare($query);
-    $statement->execute();
-    
-    $results = $statement->fetch(PDO::FETCH_ASSOC);
-    $words_arr = explode("@@", $results["words"]);
-    
-    echo json_encode($results) . "<br>";
-     
-    
-    echo "Rack: <b>" . $results["rack"]. "</b>";
-    echo "<br><br>";
-    
-    
-    echo "Possible words: <br>";
-    $count = 0;
-    foreach($words_arr as $word)
-    {
-        echo "<div id =".$count.">".str_repeat("*", strlen($word)) . "</div>";
-        $count++;
-    }
-    
-    echo "<br>";
-    //SANITIZE THIS INPUT
-    echo "Guess:<input type = 'text' id = 'guess'></input>";
-?>    
+<button id='newRack'>New Rack</button>
+<br><br>
+Rack: <div id = "rack"></div>
+<br>
+Possible words: <br><div id = "words"></div>
+<br>
+<!-- sanitize this -->
+Guess:<input type = 'text' id = 'guess'></input>
 <button id='check'>Check</button>
 </body>
 <script>
  $(document).ready(function(){
      
-      let score = 0;
-      let c_guesses = [];
-      $("#check").on("click", function()
+	 let score = 0;
+     let c_guesses = [];
+	 let word_arrLength = 0;
+	 let word_l = 0;
+	  
+	function newRack(rack)
+	{
+	    //Display new rack
+	    let hidden = "";
+	    score = 0;
+        c_guesses = [];
+	    alert(rack["words"]);
+	    var word_arr = rack["words"].split("@@");
+	    word_l = word_arr[0].length;
+	    word_arrLength = word_arr.length;
+		for(var i = 0; i < word_arr.length; i++) 
+		{
+				let star = "*";
+				let line = star.repeat(word_arr[i].length);
+				hidden = hidden + line + "<br>";
+		}
+		
+		document.getElementById("words").innerHTML = hidden;
+		document.getElementById("rack").innerHTML = rack["rack"];
+	}
+	
+	function displayCheck(grade)
+	{
+	    //Load new words
+	   let hidden = "";
+	   //if correct word wasnt guessed yet
+	   if(!c_guesses.includes(grade["guess"]) && grade["result"] == "correct")
+	   {
+	       c_guesses.push(grade["guess"]);
+	       score++;
+	       //print correct words
+	       for(var i = 0; i < c_guesses.length; i++)
+	       {
+	           hidden = hidden + c_guesses[i] + "<br>";
+	       }
+	       //determine number of words left to print
+	       for(var i = 0; i < word_arrLength-score; i++) 
+		   {    
+				let star = "*";
+				let line = star.repeat(word_l);
+				hidden = hidden + line + "<br>";
+		   }
+		
+	       document.getElementById("words").innerHTML = hidden;
+	       
+	       if(score==word_arrLength)
+	       {
+	           alert("You WIN!");
+	       }
+	   }
+	   else
+	   {
+	       alert("Incorrect or already guessed.");
+	   }
+	}
+	
+      $("#newRack").on("click", function()
       {
-        //make rack variable an ajax request so it doesnt show in js?
-        let rack = <?php echo json_encode($words_arr); ?>;
-        let guess = document.getElementById("guess").value.toUpperCase();
-        let correct = rack.includes(guess);
-        let guessed = c_guesses.includes(guess);
-        //alert(score);
-        //alert(correct);
-        if(correct && !guessed)
-        {
-               document.getElementById(score).innerHTML = guess;
-               score++;
-               c_guesses.push(guess);
-        }
-        else if(guessed)
-        {
-            alert("Already guessed. Try Again.");
-        }
-        else
-        {
-            alert("Wrong. Try again.");
-        }
-        
-        if(score == rack.length)
-        {
-            alert("You win!");
-        }
-        
+        $.ajax({
+            method: "GET",
+            url: "api.php?button=newRack",
+            dataType: 'json',
+            success: data=>{ newRack(data)}
+        });
       });
+	  
+	  $("#check").on("click", function()
+      {
+        let guess = document.getElementById("guess").value.toUpperCase();
+        let rack = document.getElementById("rack").innerHTML;
+        
+        $.ajax({
+            method: "GET",
+            url: "api.php?button=check&guess=" + guess + "&rack="+ rack,
+            dataType: 'json',
+            success: grade=>{ displayCheck(grade)}
+        });
+      });
+	  
     });
 </script>
 </html>

@@ -1,17 +1,23 @@
-<!--lOOK AT THIS COOL GAME I MADE THANKS FOR CHECKING OUT MY CODE-->
+<!-- Works as game but how to incorporate required milestones? ask novo-->
 <!DOCTYPE html>
 <html>
+<head>
+    <style>
+        body{
+          color:#FFD700;  
+}
+    </style>
+</head>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
  
-<body>
+<body bgcolor = "264FDB">
 <button id='newRack'>New Rack</button>
 <br><br>
-Rack: <div id = "rack"></div>
+<b>Rack:</b><div id = "rack"></div>
 <br>
-Possible words: <br><div id = "words"></div>
+<b>Possible words:</b><br><div id = "words"></div>
 <br>
-<!-- sanitize this -->
-Guess:<input type = 'text' id = 'guess'></input>
+<b>Guess:</b><input type = 'text' id = 'guess'></input>
 <button id='check'>Check</button>
 </body>
 <script>
@@ -28,7 +34,7 @@ Guess:<input type = 'text' id = 'guess'></input>
 	    let hidden = "";
 	    score = 0;
         c_guesses = [];
-	    alert(rack["words"]);
+	    alert(rack["words"] + " (use for testing)");
 	    var word_arr = rack["words"].split("@@");
 	    word_l = word_arr[0].length;
 	    word_arrLength = word_arr.length;
@@ -69,7 +75,13 @@ Guess:<input type = 'text' id = 'guess'></input>
 	       
 	       if(score==word_arrLength)
 	       {
-	           alert("You WIN!");
+	           alert("You WIN! New rack incoming");
+	            $.ajax({
+                    method: "GET",
+                    url: "api.php?button=newRack",
+                    dataType: 'json',
+                    success: data=>{ newRack(data)}
+                });
 	       }
 	   }
 	   else
